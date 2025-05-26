@@ -1,69 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
+import { getNearbyLocations } from '@/mocks/locations';
 import { colors } from '@/constants/colors';
-import { Category } from '@/constants/busyness';
-import { mockLocations } from '@/mocks/locations';
-import SearchBar from '@/components/SearchBar';
-import CategoryFilter from '@/components/CategoryFilter';
-import EmptyState from '@/components/EmptyState';
-import { Map } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+
+const mockUserLocation = {
+  latitude: 42.0454106,
+  longitude: -87.6825521,
+};
+
+const busynessColors = {
+  quiet: 'green',
+  moderate: 'orange',
+  busy: 'red',
+};
 
 export default function MapScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  
-  const filteredLocations = selectedCategory 
-    ? mockLocations.filter(loc => loc.category === selectedCategory)
-    : mockLocations;
+  const locations = getNearbyLocations();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <SearchBar 
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search on map..."
-        />
-      </View>
-      
-      <CategoryFilter 
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-      />
-      
-      <View style={styles.mapContainer}>
-        {Platform.OS === 'web' ? (
-          <EmptyState 
-            title="Map View"
-            message="The map view is currently in development for web. Please check back later or use the mobile app for the full experience."
-            icon={<Map size={64} color={colors.textSecondary} />}
-          />
-        ) : (
-          <EmptyState 
-            title="Map Coming Soon"
-            message="We're working on integrating maps to show you busy places around you. Check back soon!"
-            icon={<Map size={64} color={colors.textSecondary} />}
-          />
-        )}
-      </View>
-      
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Busyness Legend</Text>
-        <View style={styles.legendItems}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: colors.success }]} />
-            <Text style={styles.legendText}>Quiet</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: colors.warning }]} />
-            <Text style={styles.legendText}>Moderate</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: colors.busy }]} />
-            <Text style={styles.legendText}>Busy</Text>
-          </View>
-        </View>
-      </View>
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          ...mockUserLocation,
+          latitudeDelta: 0.03,
+          longitudeDelta: 0.03,
+        }}
+      >
+        {locations.map(location => (
+          <Marker
+            key={location.id}
+            coordinate={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
+            pinColor={
+              busynessColors[
+                ['quiet', 'moderate', 'busy'].includes(location.currentBusyness!)
+                ? location.currentBusyness as 'quiet' | 'moderate' | 'busy'
+                : 'moderate'
+              ]
+            }
+          >
+            <Callout
+              onPress={() => router.push(`/location/${location.id}`)}
+              tooltip={false}
+            >
+              <View style={styles.callout}>
+                <Text style={styles.calloutTitle}>{location.name}</Text>
+                <Text style={styles.calloutText}>{location.currentBusyness} right now</Text>
+                <Text style={styles.calloutHint}>Tap to view more</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
+      </MapView>
     </View>
   );
 }
@@ -71,45 +65,29 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+  map: {
+    width: Dimensions.get('window').width,
+    height: '100%',
   },
-  mapContainer: {
-    flex: 1,
-    backgroundColor: colors.card,
-    marginTop: 8,
+  callout: {
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 8,
+    width: 180,
   },
-  legend: {
-    padding: 16,
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  legendTitle: {
-    fontSize: 14,
+  calloutTitle: {
     fontWeight: '600',
-    marginBottom: 8,
+    fontSize: 14,
+    marginBottom: 4,
   },
-  legendItems: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  legendText: {
+  calloutText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#555',
+  },
+  calloutHint: {
+    fontSize: 10,
+    color: colors.primary,
+    marginTop: 4,
   },
 });
