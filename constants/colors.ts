@@ -1,0 +1,36 @@
+export const colors = {
+  primary: '#4A90E2',
+  primaryLight: '#7EB3FF',
+  primaryDark: '#2A6BC2',
+  secondary: '#50C878',
+  secondaryLight: '#7EDFA0',
+  secondaryDark: '#2A9850',
+  background: '#FFFFFF',
+  card: '#F8F9FA',
+  text: '#1A1A1A',
+  textSecondary: '#6E7A8A',
+  border: '#E1E4E8',
+  error: '#E53935',
+  success: '#43A047',
+  warning: '#FFA000',
+  busy: '#E53935',
+  moderate: '#FFA000',
+  quiet: '#43A047',
+  inactive: '#BDBDBD',
+  white: '#FFFFFF',
+  black: '#000000',
+  transparent: 'transparent',
+};
+
+export default {
+  light: {
+    text: colors.text,
+    textSecondary: colors.textSecondary,
+    background: colors.background,
+    card: colors.card,
+    tint: colors.primary,
+    tabIconDefault: colors.inactive,
+    tabIconSelected: colors.primary,
+    border: colors.border,
+  },
+};
